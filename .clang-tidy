@@ -1,0 +1,51 @@
+---
+Checks: "*,
+        -abseil-*,
+        -altera-*,
+        -android-*,
+        -fuchsia-*,
+        -google-*,
+        -llvm*,
+        -zircon-*,
+        -readability-else-after-return,
+        -readability-magic-numbers,
+        -readability-static-accessed-through-instance,
+        -readability-avoid-const-params-in-decls,
+        -cppcoreguidelines-non-private-member-variables-in-classes,
+        -cppcoreguidelines-avoid-non-const-global-variables,
+        -cppcoreguidelines-avoid-magic-numbers,
+        -misc-non-private-member-variables-in-classes,
+"
+WarningsAsErrors: '*'
+HeaderFilterRegex: ''
+FormatStyle: file
+
+CheckOptions:
+  - { key: readability-identifier-naming.NamespaceCase,                    value: lower_case }
+  - { key: readability-identifier-naming.ConceptCase,                      value: CamelCase }
+  - { key: readability-identifier-naming.ClassCase,                        value: lower_case }
+  - { key: readability-identifier-naming.StructCase,                       value: lower_case }
+  - { key: readability-identifier-naming.FunctionCase,                     value: lower_case }
+  - { key: readability-identifier-naming.VariableCase,                     value: camelBack }
+  - { key: readability-identifier-naming.ParameterCase,                    value: camelBack }
+  - { key: readability-identifier-naming.ClassMemberCase,                  value: camelBack }
+  - { key: readability-identifier-naming.PrivateMemberCase,                value: camelBack }
+  - { key: readability-identifier-naming.PrivateMemberPrefix,              value: 'm_' }
+  - { key: readability-identifier-naming.ProtectedMemberCase,              value: camelBack }
+  - { key: readability-identifier-naming.ProtectedMemberPrefix,            value: 'm_' }
+  - { key: readability-identifier-naming.ClassConstantCase,                value: CamelCase }
+  - { key: readability-identifier-naming.ClassMethodCase,                  value: lower_case }
+  - { key: readability-identifier-naming.PublicMethodCase,                 value: lower_case }
+  - { key: readability-identifier-naming.ProtectedMethodCase,              value: lower_case }
+  - { key: readability-identifier-naming.PrivateMethodCase,                value: lower_case }
+  - { key: readability-identifier-naming.EnumConstantCase,                 value: CamelCase }
+  - { key: readability-identifier-naming.ScopedEnumConstantCase,           value: CamelCase }
+  - { key: readability-identifier-naming.ConstexprVariableCase,            value: CamelCase }
+  - { key: readability-identifier-naming.GlobalConstantCase,               value: CamelCase }
+  - { key: readability-identifier-naming.MemberConstantCase,               value: CamelCase }
+  - { key: readability-identifier-naming.StaticConstantCase,               value: CamelCase }
+  - { key: readability-identifier-naming.StaticVariableCase,               value: camelBack }
+  - { key: readability-identifier-naming.TypeAliasCase,                    value: CamelCase }
+  - { key: readability-identifier-naming.TypedefCase,                      value: CamelCase }
+  - { key: readability-identifier-length.IgnoredVariableNames,             value: 'i|j|k|x|y|z' }
+  - { key: readability-identifier-length.IgnoredParameterNames,            value: 'i|j|k|x|y|z' }
