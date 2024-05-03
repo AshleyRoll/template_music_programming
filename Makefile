@@ -8,7 +8,7 @@ OBJ_FILES := $(patsubst src/%.cpp, obj/%.o, $(SRC_FILES))
 LD_SCRIPT := gcc/wav_file_generator.ld
 
 CXX=g++
-CPPFLAGS=-O3 --std=c++23
+CPPFLAGS=-O3 --std=c++23 -I ./include -fconstexpr-ops-limit=9999999999999
 LDFLAGS=-T $(LD_SCRIPT)
 LD=ld
 RM=rm -f
@@ -43,5 +43,4 @@ depend: .depend
 	@rm -f "$@"
 	@$(CXX) $(CPPFLAGS) -MM $^ -MF "$@"
 
-
-include .depend
+-include .depend
