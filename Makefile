@@ -5,9 +5,11 @@ PROJ_NAME := constexpr_song
 SRC_FILES := src/constexpr_song.cpp
 OBJ_FILES := $(patsubst src/%.cpp, obj/%.o, $(SRC_FILES))
 
+LD_SCRIPT := gcc/wav_file_generator.ld
+
 CXX=g++
 CPPFLAGS=-O3 --std=c++23
-LDFLAGS=-T wav_gen.ld
+LDFLAGS=-T $(LD_SCRIPT)
 LD=ld
 RM=rm -f
 
@@ -29,7 +31,7 @@ $(PROJ_NAME).wav: obj/$(PROJ_NAME).elf
 	@echo "Done."
 
 
-obj/$(PROJ_NAME).elf: $(OBJ_FILES) wav_gen.ld
+obj/$(PROJ_NAME).elf: $(OBJ_FILES) $(LD_SCRIPT)
 	@echo "Linking [ $@ ] ..."
 	@mkdir -p obj
 	@$(LD) $(LDFLAGS) -o $@ $(OBJ_FILES)
