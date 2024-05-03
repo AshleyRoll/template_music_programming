@@ -7,11 +7,12 @@
 constinit auto const WaveData = [] {
   using namespace tmp;
 
-  wav_renderer_mono<sample_rate{ 8000 }, seconds{ 5 }, block_size{ 1024 }> wav{};
+  wav_renderer_mono<sample_rate{ 4000 }, seconds{ 2 }, block_size{ 1024 }> wav{};
 
-  auto source = mixer<wav.Rate, sources::oscillator, sources::oscillator>{
-    { tmp::frequency{ 440.0F }, tmp::volume{ 0.5f } },
-    { tmp::frequency{ 540.0F }, tmp::volume{ 0.5f } }
+  auto source = mixer<wav.Rate, sources::oscillator, sources::oscillator, sources::oscillator>{
+    { tmp::frequency{ 440.0F }, tmp::volume{ 0.3f } },
+    { tmp::frequency{ 523.3F }, tmp::volume{ 0.3f } },
+    { tmp::frequency{ 659.3F }, tmp::volume{ 0.3f } }
   };
 
   wav.render(source);

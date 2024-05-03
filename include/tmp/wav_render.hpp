@@ -147,7 +147,8 @@ namespace tmp {
 
         for(std::size_t sample{0}; sample < BLOCK_SIZE.samples_per_block; ++sample) {
           // encode sample to 16 bit
-          auto val = static_cast<std::int16_t>(audioData[sample] * std::numeric_limits<int16_t>::max());
+          auto clamped = std::clamp(audioData[sample], -1.0F, 1.0F);
+          auto val = static_cast<std::int16_t>(clamped * std::numeric_limits<int16_t>::max());
           detail::write_le(sampleData.subspan((block + sample) * 2, 2), static_cast<std::uint16_t>(val));
         }
 
