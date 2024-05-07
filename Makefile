@@ -15,6 +15,9 @@ RM=rm -f
 
 all: $(PROJ_NAME).wav
 
+play: all
+	@play $(PROJ_NAME).wav
+
 clean:
 	@echo "Cleaning build outputs"
 	@$(RM) -r obj
@@ -26,7 +29,7 @@ obj/%.o: src/%.cpp
 	@$(CXX) $(CPPFLAGS) -c $< -o $@
 
 $(PROJ_NAME).wav: obj/$(PROJ_NAME).elf
-	@echo "Creating [ $@ ] from [ $< ] ..."
+	@echo "Extracting [ $@ ] from [ $< ] ..."
 	@objcopy --only-section=.wavefile -O binary $< $@
 	@echo "Done."
 

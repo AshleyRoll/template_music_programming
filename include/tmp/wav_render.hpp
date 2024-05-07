@@ -58,7 +58,7 @@ namespace tmp {
       constexpr static auto number_samples(seconds seconds, block_size blockSize) -> std::uint32_t
       {
         // ensure we end up with a whole number of blocks
-        auto samples = seconds.seconds * SampleRate * NumberChannels;
+        std::uint32_t samples = seconds.seconds * SampleRate * NumberChannels;
         return ((samples / blockSize.samples_per_block) + 1) * blockSize.samples_per_block;
       }
 

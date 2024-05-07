@@ -2,46 +2,61 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <numbers>
 #include <span>
 #include <tuple>
+#include <vector>
 
-
+#include "sources.hpp"
 #include "types.hpp"
 
 namespace tmp {
-  namespace sources {
+  namespace instruments {
+
+    //
+    // A simple synthesiser using sine wave oscillators
+    //
     template<sample_rate RATE>
-    class oscillator
+    class synth
     {
-      static constexpr float Tau = 2.0F * std::numbers::pi_v<float>;
-
     public:
-      constexpr oscillator(frequency freq, volume vol)
-        : m_deltaTheta{ (2.0F * std::numbers::pi_v<float> * freq.hertz) / RATE.samples_per_second }
-        , m_volume{ vol }
-      {}
-
       template<block_size BLOCK_SIZE>
       constexpr void render(std::span<float, BLOCK_SIZE.samples_per_block> buffer)
       {
-        for (auto &sample : buffer) {
-          sample = m_volume.value * std::sin(m_theta);
-          m_theta += m_deltaTheta;
+        std::ranges::fill(buffer, 0.0F);  // zero the output buffer before rendering
+
+        for (auto &note : m_playingNotes) {
+          std::array<float, BLOCK_SIZE.samples_per_block> sampleBuffer;
+          note.template render<BLOCK_SIZE>(sampleBuffer);
+          for (std::size_t i{ 0 }; i < BLOCK_SIZE.samples_per_block; ++i) {
+            buffer[i] = buffer[i] + sampleBuffer[i];
+          }
         }
 
-        // keep theta between 0..Tau (2 pi)
-        while (m_theta > Tau) {
-          m_theta -= Tau;
-        }
+        // remove idle notes
+        //std::remove_if(m_playingNotes.begin(), m_playingNotes.end(), [](auto n) { return n.is_idle(); });
+      }
+
+      constexpr void play_note(note note, seconds noteOn /*, seconds note_length*/)
+      {
+
+        Note addedNote{
+          sources::envelope<RATE>{ seconds{ 0.05F }, volume{ 1.0F }, seconds{ 0.1F }, volume{ 0.7F }, seconds{ 0.1F } },
+          note.note_frequency,
+          volume{ 0.3F }
+        };
+
+        addedNote.note_on(noteOn.to_samples(RATE));
+
+        m_playingNotes.push_back(addedNote);
       }
 
     private:
-      float m_deltaTheta;
-      volume m_volume;
-      float m_theta{ 0.0F };
+      using Note = sources::note_base<RATE, sources::oscillator>;
+
+      std::vector<Note> m_playingNotes{};
     };
-  }  // namespace sources
+
+  }  // namespace instruments
 
   template<sample_rate RATE, template<sample_rate> typename... SOURCES>
   class mixer
@@ -60,14 +75,13 @@ namespace tmp {
 
       std::apply(
         [&buffer](auto &...sources) {
-          auto process =
-            [&buffer](auto &src) {
-              std::array<float, BLOCK_SIZE.samples_per_block> sampleBuffer;
-              src.template render<BLOCK_SIZE>(sampleBuffer);
-              for (std::size_t i{ 0 }; i < BLOCK_SIZE.samples_per_block; ++i) {
-                buffer[i] = buffer[i] + sampleBuffer[i];
-              }
-            };
+          auto process = [&buffer](auto &src) {
+            std::array<float, BLOCK_SIZE.samples_per_block> sampleBuffer;
+            src.template render<BLOCK_SIZE>(sampleBuffer);
+            for (std::size_t i{ 0 }; i < BLOCK_SIZE.samples_per_block; ++i) {
+              buffer[i] = buffer[i] + sampleBuffer[i];
+            }
+          };
 
           // fold over all sources
           (process(sources), ...);
@@ -78,7 +92,6 @@ namespace tmp {
   private:
     SourceTuple m_sources;
   };
-
 
 
 }  // namespace tmp
