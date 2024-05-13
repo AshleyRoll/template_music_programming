@@ -33,7 +33,7 @@ namespace tmp {
         }
 
         // remove idle notes
-        //std::remove_if(m_playingNotes.begin(), m_playingNotes.end(), [](auto n) { return n.is_idle(); });
+        std::remove_if(m_playingNotes.begin(), m_playingNotes.end(), [](auto n) { return n.is_idle(); });
       }
 
       constexpr void play_note(note note, seconds noteOn /*, seconds note_length*/)

@@ -3,6 +3,7 @@
 PROJ_NAME := constexpr_song
 
 SRC_FILES := src/constexpr_song.cpp
+HDR_FILES := $(shell find include -name "*.hpp")
 OBJ_FILES := $(patsubst src/%.cpp, obj/%.o, $(SRC_FILES))
 
 LD_SCRIPT := gcc/wav_file_generator.ld
@@ -12,6 +13,9 @@ CPPFLAGS=-O3 --std=c++23 -I ./include -fconstexpr-ops-limit=9999999999999
 LDFLAGS=-T $(LD_SCRIPT)
 LD=ld
 RM=rm -f
+
+.PHONY: all play clean
+
 
 all: $(PROJ_NAME).wav
 
@@ -23,8 +27,8 @@ clean:
 	@$(RM) -r obj
 	@$(RM) $(PROJ_NAME).wav
 
-obj/%.o: src/%.cpp
-	@echo "Compiling [ $^ ]"
+obj/%.o: src/%.cpp $(HDR_FILES)
+	@echo "Compiling [ $< ]"
 	@mkdir -p obj
 	@$(CXX) $(CPPFLAGS) -c $< -o $@
 
@@ -38,12 +42,3 @@ obj/$(PROJ_NAME).elf: $(OBJ_FILES) $(LD_SCRIPT)
 	@echo "Linking [ $@ ] ..."
 	@mkdir -p obj
 	@$(LD) $(LDFLAGS) -o $@ $(OBJ_FILES)
-
-depend: .depend
-
-.depend: $(SRC_FILES)
-	@echo "Computing Dependencies..."
-	@rm -f "$@"
-	@$(CXX) $(CPPFLAGS) -MM $^ -MF "$@"
-
--include .depend
