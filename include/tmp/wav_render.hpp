@@ -3,11 +3,12 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <numbers>
 #include <span>
 
-#include "synth.hpp"
+#include "types.hpp"
 
 namespace tmp {
 
@@ -58,7 +59,7 @@ namespace tmp {
       constexpr static auto number_samples(seconds seconds, block_size blockSize) -> std::uint32_t
       {
         // ensure we end up with a whole number of blocks
-        std::uint32_t samples = seconds.seconds * SampleRate * NumberChannels;
+        std::uint32_t samples = seconds.period * SampleRate * NumberChannels;
         return ((samples / blockSize.samples_per_block) + 1) * blockSize.samples_per_block;
       }
 
@@ -145,13 +146,12 @@ namespace tmp {
       for (std::size_t block{ 0 }; block < NumSamples; block += BLOCK_SIZE.samples_per_block) {
         source.template render<BLOCK_SIZE>(audioData);
 
-        for(std::size_t sample{0}; sample < BLOCK_SIZE.samples_per_block; ++sample) {
+        for (std::size_t sample{ 0 }; sample < BLOCK_SIZE.samples_per_block; ++sample) {
           // encode sample to 16 bit
           auto clamped = std::clamp(audioData[sample], -1.0F, 1.0F);
           auto val = static_cast<std::int16_t>(clamped * std::numeric_limits<int16_t>::max());
           detail::write_le(sampleData.subspan((block + sample) * 2, 2), static_cast<std::uint16_t>(val));
         }
-
       }
     }
   };

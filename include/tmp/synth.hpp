@@ -1,7 +1,8 @@
 #pragma once
 
 #include <algorithm>
-#include <cstdint>
+#include <array>
+#include <cstddef>
 #include <span>
 #include <tuple>
 #include <vector>
@@ -11,7 +12,6 @@
 
 namespace tmp {
   namespace instruments {
-
     //
     // A simple synthesiser using sine wave oscillators
     //
@@ -33,16 +33,16 @@ namespace tmp {
         }
 
         // remove idle notes
-        std::remove_if(m_playingNotes.begin(), m_playingNotes.end(), [](auto n) { return n.is_idle(); });
+        std::remove_if(m_playingNotes.begin(), m_playingNotes.end(), [](auto note) { return note.is_idle(); });
       }
 
-      constexpr void play_note(note note, seconds noteOn /*, seconds note_length*/)
+      constexpr void play_note(note note, seconds noteOn /*, period note_length*/)
       {
+        using namespace literals;
 
         Note addedNote{
-          sources::envelope<RATE>{ seconds{ 0.05F }, volume{ 1.0F }, seconds{ 0.1F }, volume{ 0.7F }, seconds{ 0.1F } },
-          note.note_frequency,
-          volume{ 0.3F }
+          sources::envelope<RATE>{ 0.05_sec, 0.0_dBfs, 0.1_sec, -3.0_dBfs, 0.1_sec },
+          note.note_frequency, -3.0_dBfs
         };
 
         addedNote.note_on(noteOn.to_samples(RATE));

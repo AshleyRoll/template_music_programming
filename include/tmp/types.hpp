@@ -1,39 +1,84 @@
 #pragma once
 
+#include <array>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
-#include <span>
 #include <stdexcept>
 #include <string_view>
-#include <unordered_map>
 
 namespace tmp {
 
   struct sample_rate
   {
+    constexpr explicit sample_rate(std::uint32_t sps)
+      : samples_per_second{ sps }
+    {}
+
     std::uint32_t samples_per_second;
   };
 
   struct seconds
   {
-    float seconds;
+    constexpr explicit seconds(float s)  // NOLINT
+      : period{ s }
+    {}
+
+    float period;
 
     [[nodiscard]] constexpr auto to_samples(sample_rate rate) const -> std::uint32_t
     {
-      return static_cast<std::uint32_t>(seconds * static_cast<float>(rate.samples_per_second));
+      return static_cast<std::uint32_t>(period * static_cast<float>(rate.samples_per_second));
     }
   };
 
   struct frequency
   {
+    constexpr explicit frequency(float hz)  // NOLINT
+      : hertz{ hz }
+    {}
+
     float hertz;
+  };
+
+  struct dBfs
+  {
+
+    constexpr explicit dBfs(float db)  // NOLINT
+      : value{ db }
+    {}
+
+    float value;
+
+    [[nodiscard]] constexpr auto to_linear(float fsReference) const -> float
+    {
+      // power 10 * log(P/ref)
+      // P = 10^(dB/10) * ref
+      return std::pow(10.0F, value / 10.0F) * fsReference;
+    }
+
+    constexpr auto operator-() const -> dBfs
+    {
+      return dBfs{ -value };
+    }
+
   };
 
   struct volume
   {
-    constexpr explicit volume(float value)
-      : value{ std::clamp(value, 0.0F, 1.0F) }
+    constexpr static float Min = 0.0F;
+    constexpr static float Max = 1.0F;
+
+    constexpr explicit volume(float linearVolume)
+      : value{ linearVolume }
+    {
+      value = std::clamp(value, Min, Max);
+    }
+
+    constexpr volume(dBfs dbfs)
+      : volume(dbfs.to_linear(Max))
     {}
+
 
     float value;
   };
@@ -95,5 +140,27 @@ namespace tmp {
       return frequency{ std::pow(2.0F, ((static_cast<float>(noteNumber) - 49) / 12.0F)) * 440.0F };
     }
   };
+
+  namespace literals {
+    constexpr auto operator""_dBfs(long double value) -> dBfs
+    {
+      return dBfs{ static_cast<float>(value) };
+    }
+
+    constexpr auto operator""_sec(long double value) -> seconds
+    {
+      return seconds{ static_cast<float>(value) };
+    }
+
+    constexpr auto operator""_hz(long double value) -> frequency
+    {
+      return frequency{ static_cast<float>(value) };
+    }
+
+    constexpr auto operator""_note(char const *str, std::size_t size) -> note
+    {
+      return note{ std::string_view{str, size} };
+    }
+  }  // namespace literals
 
 }  // namespace tmp
