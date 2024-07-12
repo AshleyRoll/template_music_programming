@@ -58,10 +58,8 @@ namespace tmp {
     }
 
     constexpr auto operator-() const -> dBfs
-    {
-      return dBfs{ -value };
+    { return dBfs{ -value };
     }
-
   };
 
   struct volume
@@ -90,6 +88,12 @@ namespace tmp {
 
   struct note
   {
+    // In MIDI, A0 is note 21, making A4 = 69, we will use MIDI note numbers
+    // to make our life easier in converting data and making nodes from our piano roll
+    constexpr static int A0NoteNumber = 21;
+    constexpr static int A4NoteNumber = A0NoteNumber + (12 * 4);
+    constexpr static float A4NoteFrequency = 440.0f;
+
     constexpr explicit note(std::string_view const name)
       : note_frequency{ parse(name) }
     {}
@@ -101,9 +105,7 @@ namespace tmp {
     {
       // Name in format of <N><Octave>
       // Where name is in list below, and Octave is 0-8.
-      //
-      // deal with extended piano keys. key 1 = A0, key 88 = C8, key 99 = B8 - up to octave 8
-      // where A4 == 440Hz. We use the offset into notes (+1) as the note number and calculate
+      // We use the offset into notes as the note number and calculate
       // the frequency from formula here: https://en.wikipedia.org/wiki/Piano_key_frequencies
 
       constexpr static std::array<std::string_view, 12> Notes{
@@ -127,7 +129,7 @@ namespace tmp {
       if (pos == Notes.end()) {
         throw std::invalid_argument{ "Invalid note name, (A-G#, no B# or E#)" };
       }
-      auto noteNumber = static_cast<int>(1 + std::distance(Notes.begin(), pos));
+      auto noteNumber = static_cast<int>(A0NoteNumber + std::distance(Notes.begin(), pos));
 
       // find the octave number
       if (octave[0] < '0' || octave[0] > '8') {
@@ -137,7 +139,7 @@ namespace tmp {
       noteNumber = noteNumber + (12 * octaveNumber);
 
       // compute the frequency
-      return frequency{ std::pow(2.0F, ((static_cast<float>(noteNumber) - 49) / 12.0F)) * 440.0F };
+      return frequency{ std::pow(2.0F, (static_cast<float>(noteNumber - A4NoteNumber) / 12.0F)) * A4NoteFrequency };
     }
   };
 
@@ -159,7 +161,9 @@ namespace tmp {
 
     constexpr auto operator""_note(char const *str, std::size_t size) -> note
     {
-      return note{ std::string_view{str, size} };
+      return note{
+        std::string_view{ str, size }
+      };
     }
   }  // namespace literals
 
