@@ -1,5 +1,6 @@
 #include <array>
 
+#include "tmp/sequencer.hpp"
 #include "tmp/synth.hpp"
 #include "tmp/types.hpp"
 #include "tmp/wav_render.hpp"
@@ -32,18 +33,21 @@ constinit auto const WaveData = [] {
   using namespace tmp;
   using namespace tmp::literals;
 
-  wav_renderer_mono<sample_rate{ 4000 }, seconds{ 1.0f * 2.0F }> wav{};
+  wav_renderer_mono<sample_rate{ 8192 }, seconds{ 1.0f * 2.0F }> wav{};
 
-  instruments::synth<wav.Rate> synth{};
-  synth.play_note("C4"_note, 0.1_sec);
-  synth.play_note("E4"_note, 0.5_sec);
-  synth.play_note("G4"_note, 1.0_sec);
+  instruments::triangle_synth<wav.Rate> synth{};
+
+  sequencer sequencer{ synth };
+
+  sequencer.queue_event("C4"_note, (0.1_sec).to_samples(wav.Rate), (0.3_sec).to_samples(wav.Rate));
+  sequencer.queue_event("E4"_note, (0.5_sec).to_samples(wav.Rate), (0.9_sec).to_samples(wav.Rate));
+  sequencer.queue_event("G4"_note, (1.0_sec).to_samples(wav.Rate), (1.5_sec).to_samples(wav.Rate));
 
   // auto source = mixer<wav.Rate, instruments::synth>{
   //   synth
   // };
 
-  wav.render(synth);
+  wav.render(sequencer);
   return wav.data;
 }();
 

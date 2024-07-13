@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <span>
 #include <tuple>
 #include <vector>
@@ -15,8 +16,8 @@ namespace tmp {
     //
     // A simple synthesiser using sine wave oscillators
     //
-    template<sample_rate RATE>
-    class synth
+    template<sample_rate RATE, template<sample_rate> typename OSCILLATOR>
+    class synth_base
     {
     public:
       template<block_size BLOCK_SIZE>
@@ -33,28 +34,37 @@ namespace tmp {
         }
 
         // remove idle notes
-        (void)std::remove_if(m_playingNotes.begin(), m_playingNotes.end(), [](auto note) { return note.is_idle(); });
+        std::erase_if(m_playingNotes, [](auto &note) { return note.is_idle(); });
       }
 
-      constexpr void play_note(note note, seconds noteOn /*, period note_length*/)
+      constexpr void
+        play_note(note note, std::uint32_t startNumberSamplesFromNextBlock, std::uint32_t stopAfterNumberSamples)
       {
         using namespace literals;
 
-        Note addedNote{
-          sources::envelope<RATE>{ 0.05_sec, 0.0_dBfs, 0.1_sec, -3.0_dBfs, 0.1_sec },
-          note.note_frequency, -3.0_dBfs
-        };
-
-        addedNote.note_on(noteOn.to_samples(RATE));
-
-        m_playingNotes.push_back(addedNote);
+        m_playingNotes.emplace_back(sources::envelope<RATE>{ 0.005_sec, 0.0_dBfs, 0.01_sec, -3.0_dBfs, 0.005_sec },
+          startNumberSamplesFromNextBlock,
+          stopAfterNumberSamples,
+          note.note_frequency,
+          -3.0_dBfs);
       }
 
     private:
-      using Note = sources::note_base<RATE, sources::oscillator>;
+      using Note = sources::note_base<RATE, OSCILLATOR>;
 
       std::vector<Note> m_playingNotes{};
     };
+
+    template<sample_rate RATE>
+    class sin_synth : public synth_base<RATE, sources::sin_oscillator>
+    {
+    };
+
+    template<sample_rate RATE>
+    class triangle_synth : public synth_base<RATE, sources::triangle_oscillator>
+    {
+    };
+
 
   }  // namespace instruments
 

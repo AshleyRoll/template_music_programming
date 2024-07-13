@@ -115,7 +115,7 @@ namespace tmp {
   }  // namespace detail
 
 
-  template<sample_rate RATE, seconds SECONDS, block_size BLOCK_SIZE = block_size{ 512 }>
+  template<sample_rate RATE, seconds SECONDS, block_size BLOCK_SIZE = block_size{ 128 }>
   struct wav_renderer_mono
   {
     static constexpr sample_rate Rate = RATE;
@@ -131,7 +131,7 @@ namespace tmp {
     std::array<std::byte, TotalSize> data;
 
     template<typename SOURCE>
-    constexpr void render(SOURCE source)
+    constexpr void render(SOURCE &source)
     {
       std::span<std::byte, TotalSize> buffer{ data };
 

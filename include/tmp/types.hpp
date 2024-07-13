@@ -39,6 +39,16 @@ namespace tmp {
     {}
 
     float hertz;
+
+    [[nodiscard]] constexpr auto to_period() const -> seconds
+    {
+      return seconds{ (1.0f / hertz) };
+    }
+
+    [[nodiscard]] constexpr auto to_half_period() const -> seconds
+    {
+      return seconds{ 1.0f / (2.0f * hertz) };
+    }
   };
 
   struct dBfs
@@ -58,7 +68,8 @@ namespace tmp {
     }
 
     constexpr auto operator-() const -> dBfs
-    { return dBfs{ -value };
+    {
+      return dBfs{ -value };
     }
   };
 
