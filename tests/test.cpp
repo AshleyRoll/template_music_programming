@@ -1,27 +1,68 @@
 #include <array>
 
+#include "../include/tmp/sequencer.hpp"
 #include "../include/tmp/synth.hpp"
 #include "../include/tmp/types.hpp"
 #include "../include/tmp/wav_render.hpp"
 
-int main(int argc, char *argv[])
-{
+auto notesfull = [] -> std::string_view {
+       return R"(
+   | 1                 | 2                 | 3                 | 4                 | 5                 | 6                 | 7                 | 8                 | 9                 |
+   |----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|
+G#4|    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |####:    :    :    |    :    :    :    |    :    :    :    |
+G4 |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |
+F#4|    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |
+F4 |    :    :    :    |## #:##  :    :    |    :    :    :    |    :    :    :    |    :    :    :    |## #:#   :    :    |    :    :    :    |    :    :    :    |    :    :    :    |
+E4 |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |
+D#4|    :    :    :    |    :  ##:##  :    |## #:##  :    :    |    :##  :    :    |##  :    :    :    |    :  ##:##  :    |    :    :    :    |    :##  :    :    |    :    :    :    |
+D4 |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |
+C#4|    :    :    :  # |    :    :    :    |    :  ##:##  :  # |####:    :    :    |    :####:    :  # |    :    :    :    |    :  ##:### :  # |####:    :    :    |### :####:    :    |
+C4 |    :    :    :    |    :    :    :  # |    :    :    :    |    :   #:    :    |    :    :    :    |    :    :    :  # |    :##  :    :    |    :    :    :    |    :    :    :    |
+B3 |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |
+A#3|    :    :    : # #|    :    :    : # #|    :    :    : # #|    :  # :##  :    |    :    :    : # #|    :    :    : # #|    :    :    : # #|    :  ##:####:    |    :    :    :    |
+A3 |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |
+G#3|    :    :    :#   |    :    :    :#   |    :    :    :#   |    :    :  ##:  ##|    :    :    :#   |    :    :    :#   |    :    :    :#   |    :    :    :  ##|    :    :    :    |
+   |----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|
+)";
+};
+auto notes = [] -> std::string_view {
+  return R"(
+   | 1                 |
+   |----+----+----+----|
+G#4|    :    :    :    |
+G4 |    :    :    :    |
+F#4|    :    :    :    |
+F4 |    :    :    :    |
+E4 |    :    :    :    |
+D#4|    :    :    :    |
+D4 |    :    :    :    |
+C#4|    :    :    :  # |
+C4 |    :    :    :    |
+B3 |    :    :    :    |
+A#3|    :    :    : # #|
+A3 |    :    :    :    |
+G#3|    :    :    :#   |
+   |----+----+----+----|
+)";
+};
 
+int main()
+{
   using namespace tmp;
   using namespace tmp::literals;
+  using namespace tmp::instruments;
 
-  wav_renderer_mono<sample_rate{ 4000 }, seconds{ 2.0F }> wav{};
+  static constexpr sample_rate rate{8192};
 
-  instruments::synth<wav.Rate> synth{};
+  triangle_synth<rate> synth{};
+  sequencer sequencer{ synth };
 
-  if(argc >= 1) {
-    synth.play_note("C4"_note, 0.1_sec, 0.35_sec);
-    synth.play_note("E4"_note, 0.5_sec, 0.4_sec);
-    synth.play_note("G4"_note, 1.0_sec, 0.4_sec);
-  }
+  constexpr auto music_length = parse_music_length(notesfull);
+  sequencer.parse_music(notesfull);
 
-  wav.render(synth);
+  wav_renderer_mono<rate, music_length> wav{};
 
-  auto d = wav.data;
+  wav.render(sequencer);
+  auto data = wav.data;
   return 0;
 }

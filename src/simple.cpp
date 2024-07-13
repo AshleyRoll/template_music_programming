@@ -9,10 +9,11 @@
 constinit auto const WaveData = [] {
   using namespace tmp;
   using namespace tmp::literals;
+  using namespace tmp::instruments;
 
   wav_renderer_mono<sample_rate{ 4000 }, seconds{ 1.0f }> wav{};
 
-  instruments::sin_synth<wav.Rate> synth{};
+  sin_synth<wav.Rate> synth{};
 
   sequencer sequencer{ synth };
 
