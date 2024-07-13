@@ -1,4 +1,5 @@
 obj/
+bin/
 .idea/
 *.wav
 .depend
