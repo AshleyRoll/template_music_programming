@@ -115,7 +115,7 @@ namespace tmp {
   }  // namespace detail
 
 
-  template<sample_rate RATE, seconds SECONDS, block_size BLOCK_SIZE>
+  template<sample_rate RATE, seconds SECONDS, block_size BLOCK_SIZE = block_size{ 512 }>
   struct wav_renderer_mono
   {
     static constexpr sample_rate Rate = RATE;
