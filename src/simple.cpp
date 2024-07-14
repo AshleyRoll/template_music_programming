@@ -16,14 +16,13 @@ constinit auto const WaveData = [] {
 
   sin_synth<Rate> synth{
     envelope{ 0.005_sec, 0.0_dBfs, 0.01_sec, -3.0_dBfs, 0.005_sec },
-    -3.0_dBfs
+    -1.0_dBfs
   };
 
   sequencer sequencer{ synth };
 
-
-  wav_renderer_mono<Rate, seconds{ 2.0F }> wav{};
-  synth.play_note("C4"_note, (0.1_sec).to_samples(wav.Rate), (1.0_sec).to_samples(wav.Rate));
+  wav_renderer_mono<Rate, seconds{ 1.6F }> wav{};
+  synth.play_note("A4"_note, (0.1_sec).to_samples(wav.Rate), (1.5_sec).to_samples(wav.Rate));
 
   wav.render(sequencer);
   return wav.data;

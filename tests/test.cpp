@@ -4,16 +4,16 @@
  */
 
 
-#include <array>
 #include <iostream>
 
-#include "../include/tmp/sequencer.hpp"
-#include "../include/tmp/synth.hpp"
-#include "../include/tmp/types.hpp"
-#include "../include/tmp/wav_render.hpp"
+#include "tmp/sequencer.hpp"
+#include "tmp/synth.hpp"
+#include "tmp/types.hpp"
+#include "tmp/wav_render.hpp"
 
-auto notesfull = [] -> std::string_view {
-  return R"(
+auto musicSource = [] -> tmp::music {
+       return tmp::music{ tmp::beats_per_minute{ 120 },
+                          R"(
    | 1                 | 2                 | 3                 | 4                 | 5                 | 6                 | 7                 | 8                 |
    |----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|
 G#4|    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :####:    :    |    :    :    :    |    :    :    :    |
@@ -30,7 +30,7 @@ A#3| # #:    :    :    | # #:    :    :    | # #:    :  # :##  |    :    :    : 
 A3 |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |    :    :    :    |
 G#3|#   :    :    :    |#   :    :    :    |#   :    :    :  ##|  ##:    :    :    |#   :    :    :    |#   :    :    :    |#   :    :    :    |  ##:    :    :    |
    |----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|----+----+----+----|
-)";
+)" };
 };
 
 void test_notes()
@@ -59,19 +59,23 @@ int main()
   using namespace tmp::instruments;
 
   test_notes();
-  /*
-  static constexpr sample_rate rate{ 8192 };
 
-  triangle_synth<rate> synth{};
+
+  //static constexpr sample_rate Rate{ 8'192 };
+  static constexpr sample_rate Rate{ 8'000 };
+
+  sin_synth<Rate> synth{
+    envelope{ 0.005_sec, 0.0_dBfs, 0.02_sec, -3.0_dBfs, 0.005_sec },
+    -1.0_dBfs
+  };
   sequencer sequencer{ synth };
 
-  constexpr auto music_length = parse_music_length(notesfull);
-  sequencer.parse_music(notesfull);
+  static constexpr auto music_length = parse_music_length(musicSource);
+  sequencer.parse_music(musicSource);
 
-  wav_renderer_mono<rate, music_length> wav{};
+  wav_renderer_mono<Rate, music_length> wav{};
 
   wav.render(sequencer);
-  auto data = wav.data;
-  */
+
   return 0;
 }

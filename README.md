@@ -6,36 +6,23 @@ Generating music with C++ templates and compile time programming.
 
 ## Build
 
+CMake support thanks to @seppeon
+
 To build:
 
 ```sh
-$ make
+$ mkdir build
+$ cd build
+$ cmake --build . --target song
+$ play song.wav
 ```
-
-To clean:
-
-```sh
-$ make clean
-```
-
-To play (invokes `play` command):
-
-```sh
-$ make play-song
-```
-
-Where `song` is the name (without `.cpp` extension) of the source file
-that generates the song.
 
 ## Songs
 
-Add source files in the `src` folder and they will automatically be
-added to the build.
+Add source files in the `src` folder and edit the _CMakeLists.txt_
+adding a new entry with the `add_wav(name src/name.cpp)` macro.
 
-This will also create a build target `play-<filename>` that will build
-and play the generated audio.
-
-* `src/song.cpp` -> `bin/song.wav` (`make play-song`)
+## Writing Music
 
 The parser for the music is not that robust and will check a few things.
 
@@ -56,7 +43,7 @@ Copy the format from `src/song.cpp`.
 
 ## Instruments
 
-Currently there is only a Sin wave oscillator and this is wrapped
+Currently, there is only a sine wave oscillator and this is wrapped
 into `tmp::instruments::sin_synth`.
 
 It is possible to combine oscillators and synths with a `tmp::mixer`
@@ -71,10 +58,5 @@ and cause audio artifacts.
 There is a `tests/test.cpp` file that can be used to build a run-time
 debuggable version of code if you want to step through or check something.
 
-This can sometimes also render parts at compile time..
-
-```sh
-$ make test
-```
-
-Will build that file into an executable `bin/test`.
+The CMake target for this is `runtime-test`. Note that some of the code is
+still evaluated at compile time.
