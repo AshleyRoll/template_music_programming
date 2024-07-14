@@ -1,3 +1,9 @@
+/*
+ * You can copy code into this file and attempt to debug the constexpr code at
+ * run time.
+ */
+
+
 #include <array>
 #include <iostream>
 

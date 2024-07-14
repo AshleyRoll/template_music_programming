@@ -1,6 +1,6 @@
 # Makefile for Compile Time Synthesizer
 
-SRC_FILES := src/song.cpp src/simple.cpp
+SRC_FILES := $(shell find "src" -name "*.cpp")
 HDR_FILES := $(shell find "include" -name "*.hpp")
 OBJ_FILES := $(patsubst src/%.cpp, obj/%.o, $(SRC_FILES))
 WAV_FILES := $(patsubst src/%.cpp, bin/%.wav, $(SRC_FILES))
