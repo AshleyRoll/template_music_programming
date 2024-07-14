@@ -36,7 +36,6 @@ This will also create a build target `play-<filename>` that will build
 and play the generated audio.
 
 * `src/song.cpp` -> `bin/song.wav` (`make play-song`)
-* `src/simple.cpp` -> `bin/simple.wav` (`make play-simple`)
 
 The parser for the music is not that robust and will check a few things.
 
@@ -54,6 +53,18 @@ Copy the format from `src/song.cpp`.
 * All Lines must be the same length
 * A space (` `) represents no note played in that 16th
 * A `#` represents a note played or continued in that 16th
+
+## Instruments
+
+Currently there is only a Sin wave oscillator and this is wrapped
+into `tmp::instruments::sin_synth`.
+
+It is possible to combine oscillators and synths with a `tmp::mixer`
+and in theory each synth could be driven by a different `tmp::sequencer`.
+
+Be careful about volume levels, especially when mixing (additive) so
+the signal doesn't exceed `+/-1.0F`. The output will be clamped
+and cause audio artifacts.
 
 ## Test
 
