@@ -1,4 +1,4 @@
-# TMP - Template Music Programming
+# TMP - Template ~~Meta~~ Music Programming
 
 or **Constexpr Composition**
 
