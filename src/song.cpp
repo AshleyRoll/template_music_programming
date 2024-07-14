@@ -33,9 +33,7 @@ constinit auto const WaveData = [] {
   using namespace tmp::literals;
   using namespace tmp::instruments;
 
-  //static constexpr sample_rate rate{8'192};
-  //static constexpr sample_rate rate{16'384};
-  static constexpr sample_rate rate{22'050};
+  static constexpr sample_rate rate{8'192};
 
   sin_synth<rate> synth{};
   sequencer sequencer{ synth };

@@ -45,53 +45,6 @@ namespace tmp::sources {
     float m_theta{ 0.0F };
   };
 
-  //
-  // Simple triangle wave oscillator
-  //
-  template<sample_rate RATE>
-  class triangle_oscillator
-  {
-  public:
-    constexpr triangle_oscillator(frequency freq, volume vol)
-      : m_incrementPerSample{ compute_slope(freq) }
-      , m_volume{ vol }
-    {}
-
-    template<block_size BLOCK_SIZE>
-    constexpr void render(std::span<float, BLOCK_SIZE.samples_per_block> buffer)
-    {
-      for (std::size_t i{ 0 }; i < BLOCK_SIZE.samples_per_block; ++i) {
-        buffer[i] = next_sample();
-      }
-    }
-
-  private:
-    bool m_goingUp{ true };
-    float m_lastLevel{ 0.0F };
-    float m_incrementPerSample;
-    volume m_volume;
-
-    constexpr auto next_sample() -> float
-    {
-      if (m_goingUp) {
-        m_lastLevel += m_incrementPerSample;
-        if (m_lastLevel >= 1.0F) {
-          m_goingUp = false;
-        }
-      } else {
-        m_lastLevel -= m_incrementPerSample;
-        if (m_lastLevel <= -1.0F) {
-          m_goingUp = true;
-        }
-      }
-      return m_lastLevel * m_volume.value;
-    }
-
-    static constexpr auto compute_slope(frequency frequency) -> float
-    {
-      return 1.0F / frequency.to_half_period().to_samples(RATE);
-    }
-  };
 
   //
   // Envelope generator. Configure then call note_on() to start the envelope

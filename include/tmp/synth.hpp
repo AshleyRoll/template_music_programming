@@ -59,13 +59,6 @@ namespace tmp {
     class sin_synth : public synth_base<RATE, sources::sin_oscillator>
     {
     };
-
-    template<sample_rate RATE>
-    class triangle_synth : public synth_base<RATE, sources::triangle_oscillator>
-    {
-    };
-
-
   }  // namespace instruments
 
   template<sample_rate RATE, template<sample_rate> typename... SOURCES>
