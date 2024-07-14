@@ -15,13 +15,13 @@ namespace tmp {
   namespace detail {
     constexpr static void write_le(std::span<std::byte> buffer, std::uint16_t data)
     {
-      buffer[0] = static_cast<std::byte>(data & 0xFF);
+      buffer[0] = static_cast<std::byte>(data & 0xFFU);
       buffer[1] = static_cast<std::byte>(static_cast<std::uint16_t>(data >> 8U) & 0xFFU);
     }
 
     constexpr static void write_le(std::span<std::byte> buffer, std::uint32_t data)
     {
-      buffer[0] = static_cast<std::byte>(data & 0xFF);
+      buffer[0] = static_cast<std::byte>(data & 0xFFU);
       buffer[1] = static_cast<std::byte>(static_cast<std::uint32_t>(data >> 8U) & 0xFFU);
       buffer[2] = static_cast<std::byte>(static_cast<std::uint32_t>(data >> 16U) & 0xFFU);
       buffer[3] = static_cast<std::byte>(static_cast<std::uint32_t>(data >> 24U) & 0xFFU);
@@ -29,13 +29,13 @@ namespace tmp {
 
     constexpr static void write_be(std::span<std::byte> buffer, std::uint16_t data)
     {
-      buffer[1] = static_cast<std::byte>(data & 0xFF);
+      buffer[1] = static_cast<std::byte>(data & 0xFFU);
       buffer[0] = static_cast<std::byte>(static_cast<std::uint16_t>(data >> 8U) & 0xFFU);
     }
 
     constexpr static void write_be(std::span<std::byte> buffer, std::uint32_t data)
     {
-      buffer[3] = static_cast<std::byte>(data & 0xFF);
+      buffer[3] = static_cast<std::byte>(data & 0xFFU);
       buffer[2] = static_cast<std::byte>(static_cast<std::uint32_t>(data >> 8U) & 0xFFU);
       buffer[1] = static_cast<std::byte>(static_cast<std::uint32_t>(data >> 16U) & 0xFFU);
       buffer[0] = static_cast<std::byte>(static_cast<std::uint32_t>(data >> 24U) & 0xFFU);
@@ -60,7 +60,7 @@ namespace tmp {
       {
         // ensure we end up with a whole number of blocks
         std::uint32_t samples = seconds.period * SampleRate * NumberChannels;
-        return ((samples / blockSize.samples_per_block) + 1) * blockSize.samples_per_block;
+        return ((samples / blockSize.samplesPerBlock) + 1) * blockSize.samplesPerBlock;
       }
 
       constexpr static auto sample_data_length(seconds seconds, block_size blockSize) -> std::uint32_t
@@ -140,13 +140,13 @@ namespace tmp {
       WavHdr::render(buffer.template subspan<RiffHdr::Size + Fmt::Size, WavHdr::Size>(), SampleDataLength);
 
       auto sampleData = buffer.template last<SampleDataLength>();
-      std::array<float, BLOCK_SIZE.samples_per_block> audioData{};
+      std::array<float, BLOCK_SIZE.samplesPerBlock> audioData{};
 
       // We know we have a full multiple of BLOCK_SIZE blocks because of our calculations in the format helper
-      for (std::size_t block{ 0 }; block < NumSamples; block += BLOCK_SIZE.samples_per_block) {
+      for (std::size_t block{ 0 }; block < NumSamples; block += BLOCK_SIZE.samplesPerBlock) {
         source.template render<BLOCK_SIZE>(audioData);
 
-        for (std::size_t sample{ 0 }; sample < BLOCK_SIZE.samples_per_block; ++sample) {
+        for (std::size_t sample{ 0 }; sample < BLOCK_SIZE.samplesPerBlock; ++sample) {
           // encode sample to 16 bit
           auto clamped = std::clamp(audioData[sample], -1.0F, 1.0F);
           auto val = static_cast<std::int16_t>(clamped * std::numeric_limits<int16_t>::max());

@@ -20,44 +20,50 @@ namespace tmp {
     class synth_base
     {
     public:
+      constexpr explicit synth_base(envelope env, volume vol)
+        : m_envelope{ env }
+        , m_volume{ vol }
+      {}
+
       template<block_size BLOCK_SIZE>
-      constexpr void render(std::span<float, BLOCK_SIZE.samples_per_block> buffer)
+      constexpr void render(std::span<float, BLOCK_SIZE.samplesPerBlock> buffer)
       {
         std::ranges::fill(buffer, 0.0F);  // zero the output buffer before rendering
 
         for (auto &note : m_playingNotes) {
-          std::array<float, BLOCK_SIZE.samples_per_block> sampleBuffer;
+          std::array<float, BLOCK_SIZE.samplesPerBlock> sampleBuffer;
           note.template render<BLOCK_SIZE>(sampleBuffer);
-          for (std::size_t i{ 0 }; i < BLOCK_SIZE.samples_per_block; ++i) {
+          for (std::size_t i{ 0 }; i < BLOCK_SIZE.samplesPerBlock; ++i) {
             buffer[i] = buffer[i] + sampleBuffer[i];
           }
         }
 
-        // remove idle notes
+        // remove idle music
         std::erase_if(m_playingNotes, [](auto &note) { return note.is_idle(); });
       }
 
-      constexpr void
-        play_note(note note, std::uint32_t startNumberSamplesFromNextBlock, std::uint32_t stopAfterNumberSamples)
+      constexpr void play_note(note note, std::uint32_t startSamplesFromNextBlock, std::uint32_t stopAfterSamples)
       {
         using namespace literals;
 
-        m_playingNotes.emplace_back(sources::envelope<RATE>{ 0.005_sec, 0.0_dBfs, 0.01_sec, -3.0_dBfs, 0.005_sec },
-          startNumberSamplesFromNextBlock,
-          stopAfterNumberSamples,
-          note.note_frequency,
-          -3.0_dBfs);
+        m_playingNotes.emplace_back(
+          m_envelope, startSamplesFromNextBlock, stopAfterSamples, note.note_frequency, m_volume);
       }
 
     private:
       using Note = sources::note_base<RATE, OSCILLATOR>;
-
+      envelope m_envelope;
+      volume m_volume;
       std::vector<Note> m_playingNotes{};
     };
 
     template<sample_rate RATE>
     class sin_synth : public synth_base<RATE, sources::sin_oscillator>
     {
+    public:
+      constexpr sin_synth(envelope env, volume vol)
+        : synth_base<RATE, tmp::sources::sin_oscillator>(env, vol)
+      {}
     };
   }  // namespace instruments
 
@@ -72,16 +78,16 @@ namespace tmp {
     {}
 
     template<block_size BLOCK_SIZE>
-    constexpr void render(std::span<float, BLOCK_SIZE.samples_per_block> buffer)
+    constexpr void render(std::span<float, BLOCK_SIZE.samplesPerBlock> buffer)
     {
       std::ranges::fill(buffer, 0.0F);  // zero the output buffer before rendering
 
       std::apply(
         [&buffer](auto &...sources) {
           auto process = [&buffer](auto &src) {
-            std::array<float, BLOCK_SIZE.samples_per_block> sampleBuffer;
+            std::array<float, BLOCK_SIZE.samplesPerBlock> sampleBuffer;
             src.template render<BLOCK_SIZE>(sampleBuffer);
-            for (std::size_t i{ 0 }; i < BLOCK_SIZE.samples_per_block; ++i) {
+            for (std::size_t i{ 0 }; i < BLOCK_SIZE.samplesPerBlock; ++i) {
               buffer[i] = buffer[i] + sampleBuffer[i];
             }
           };

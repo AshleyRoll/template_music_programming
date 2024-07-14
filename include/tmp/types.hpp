@@ -18,6 +18,15 @@ namespace tmp {
     std::uint32_t samples_per_second;
   };
 
+  struct beats_per_minute
+  {
+    constexpr explicit beats_per_minute(std::uint16_t bpm)
+      : rate{ bpm }
+    {}
+
+    std::uint16_t rate;
+  };
+
   struct seconds
   {
     constexpr explicit seconds(float s)  // NOLINT
@@ -53,7 +62,6 @@ namespace tmp {
 
   struct dBfs
   {
-
     constexpr explicit dBfs(float db)  // NOLINT
       : value{ db }
     {}
@@ -94,8 +102,24 @@ namespace tmp {
 
   struct block_size
   {
-    std::size_t samples_per_block;
+    constexpr explicit block_size(std::uint32_t samplesPerBlock)
+      : samplesPerBlock{ samplesPerBlock }
+    {}
+
+    std::uint32_t samplesPerBlock;
   };
+
+  struct music
+  {
+    constexpr music(beats_per_minute bpm, std::string_view source)
+      : bpm{ bpm }
+      , source{ source }
+    {}
+
+    beats_per_minute bpm;
+    std::string_view source;
+  };
+
 
   struct note
   {
@@ -103,7 +127,7 @@ namespace tmp {
     // to make our life easier in converting data and making nodes from our piano roll
     constexpr static int A0NoteNumber = 21;
     constexpr static int A4NoteNumber = A0NoteNumber + (12 * 4);
-    constexpr static float A4NoteFrequency = 440.0f;
+    constexpr static float A4NoteFrequency = 440.0F;
     constexpr static int C0NoteNumber = 12;
 
     constexpr explicit note(std::string_view const name)
@@ -122,7 +146,7 @@ namespace tmp {
     {
       // Name in format of <N><Octave>
       // Where name is in list below, and Octave is 0-8.
-      // We use the offset into notes as the note number and calculate
+      // We use the offset into music as the note number and calculate
       // the frequency from formula here: https://en.wikipedia.org/wiki/Piano_key_frequencies
 
       // octave numbers start at C
@@ -164,6 +188,43 @@ namespace tmp {
       return frequency{ std::pow(2.0F, (static_cast<float>(noteNumber - A4NoteNumber) / 12.0F)) * A4NoteFrequency };
     }
   };
+
+  //          /\
+  //         /  \
+  //        /   --- . . . ---\
+  //    ___/                  \___
+  //    w  a  d  s           r i
+  //
+  //  on --^                 ^-- off
+  //
+  // w = Wait for note_on
+  // a = Attack note_on time
+  // d = Decay
+  // s = Sustain
+  // r = Release (note_off time)
+  // i = Idle (all values are 0.0f)
+  //
+  struct envelope
+  {
+    constexpr envelope(seconds attackTime,
+      volume attackLevel,
+      seconds decayTime,
+      volume decayLevel,
+      seconds releaseTime)
+      : attackTime{ attackTime }
+      , attackLevel{ attackLevel }
+      , decayTime{ decayTime }
+      , decayLevel{ decayLevel }
+      , releaseTime{ releaseTime }
+    {}
+
+    seconds attackTime;
+    volume attackLevel;
+    seconds decayTime;
+    volume decayLevel;
+    seconds releaseTime;
+  };
+
 
   namespace literals {
     constexpr auto operator""_dBfs(long double value) -> dBfs

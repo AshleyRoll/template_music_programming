@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <span>
 #include <stdexcept>
@@ -10,13 +11,14 @@
 #include "types.hpp"
 
 namespace tmp {
+
   namespace detail {
     class parser
     {
     public:
-      constexpr parser(std::uint16_t beatsPerMinute, std::string_view music)
-        : m_bpm{ beatsPerMinute }
-        , m_beat{ 60.0F / static_cast<float>(beatsPerMinute) }
+      constexpr parser(beats_per_minute bpm, std::string_view music)
+        : m_bpm{ bpm }
+        , m_beat{ 60.0F / static_cast<float>(m_bpm.rate) }
         , m_bar{ m_beat.period * 4.0F }
         , m_16th{ m_bar.period / 16.0F }
         , m_noteLines{ extract_note_lines(music) }
@@ -27,7 +29,7 @@ namespace tmp {
         // cut the "C4 |"
         auto notes = m_noteLines[0].substr(4);
         auto sixteenths = std::count_if(notes.begin(), notes.end(), [](auto c) { return c == ' ' or c == '#'; });
-        return seconds{ m_16th.period * sixteenths };
+        return seconds{ m_16th.period * static_cast<float>(sixteenths) };
       }
 
       constexpr void parse_events(auto insert)
@@ -42,7 +44,7 @@ namespace tmp {
       }
 
     private:
-      std::uint16_t m_bpm;
+      beats_per_minute m_bpm;
       seconds m_beat;
       seconds m_bar;
       seconds m_16th;
@@ -60,8 +62,8 @@ namespace tmp {
             if (c != '#') {
               // note ended
               insert(note{ noteName },
-                seconds{ start16th * m_16th.period },
-                seconds{ current16th * m_16th.period });
+                seconds{ static_cast<float>(start16th) * m_16th.period },
+                seconds{ static_cast<float>(current16th) * m_16th.period });
               foundNoteStart = false;
             }
           } else {
@@ -131,8 +133,8 @@ namespace tmp {
 
   constexpr auto parse_music_length(auto getMusic) -> seconds
   {
-    auto text = getMusic();
-    detail::parser p{ 120, text };
+    auto music = getMusic();
+    detail::parser p{ music.bpm, music.source };
     return p.length();
   }
 
@@ -146,8 +148,8 @@ namespace tmp {
 
     constexpr void parse_music(auto getMusic)
     {
-      auto text = getMusic();
-      detail::parser p{ 120, text };
+      auto music = getMusic();
+      detail::parser p{ music.bpm, music.source };
 
       p.parse_events([&](note n, seconds on, seconds off) {
         m_eventQueueContainer.emplace_back(n, on.to_samples(RATE), off.to_samples(RATE));
@@ -167,10 +169,10 @@ namespace tmp {
     }
 
     template<block_size BLOCK_SIZE>
-    constexpr void render(std::span<float, BLOCK_SIZE.samples_per_block> buffer)
+    constexpr void render(std::span<float, BLOCK_SIZE.samplesPerBlock> buffer)
     {
       // find events to trigger for this block
-      std::uint32_t blockEndSampleNumber = m_blockStartSampleNumber + BLOCK_SIZE.samples_per_block - 1;
+      std::uint32_t blockEndSampleNumber = m_blockStartSampleNumber + BLOCK_SIZE.samplesPerBlock - 1;
       while (!queue_is_empty()) {
 
         auto &e = queue_top();
@@ -188,10 +190,11 @@ namespace tmp {
       m_instrument.template render<BLOCK_SIZE>(buffer);
 
       // ready for next block
-      m_blockStartSampleNumber += BLOCK_SIZE.samples_per_block;
+      m_blockStartSampleNumber += BLOCK_SIZE.samplesPerBlock;
     }
 
   private:
+    // note events in absolute sample number time
     struct event
     {
       note playNote;
@@ -233,6 +236,7 @@ namespace tmp {
     INSTRUMENT<RATE> &m_instrument;
     std::uint32_t m_blockStartSampleNumber{ 0 };
     // min priority queue = ordered by first events to occur
+    // but std::priority_queue is not constexpr
     std::vector<event> m_eventQueueContainer{};
   };
 }  // namespace tmp

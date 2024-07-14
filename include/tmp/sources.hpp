@@ -26,7 +26,7 @@ namespace tmp::sources {
     {}
 
     template<block_size BLOCK_SIZE>
-    constexpr void render(std::span<float, BLOCK_SIZE.samples_per_block> buffer)
+    constexpr void render(std::span<float, BLOCK_SIZE.samplesPerBlock> buffer)
     {
       for (auto &sample : buffer) {
         sample = m_volume.value * std::sin(m_theta);
@@ -47,41 +47,22 @@ namespace tmp::sources {
 
 
   //
-  // Envelope generator. Configure then call note_on() to start the envelope
+  // Envelope generator. Configure then call note_on() to start the envelope_generator
   // and call note_off() to enter the sustain ramp down to 0.0F.
   //
-  // is_idle() will indicate when the envelope is complete.
-  //
-  //          /\
-  //         /  \
-  //        /   --- . . . ---\
-  //    ___/                  \___
-  //    w  a  d  s           r i
-  //
-  //  on --^                 ^-- off
-  //
-  // w = Wait for note_on
-  // a = Attack note_on time
-  // d = Decay
-  // s = Sustain
-  // r = Release (note_off time)
-  // i = Idle (all values are 0.0f)
+  // is_idle() will indicate when the envelope_generator is complete.
   //
   template<sample_rate RATE>
-  class envelope
+  class envelope_generator
   {
   public:
-    constexpr envelope(seconds attackTime,
-      volume attackLevel,
-      seconds decayTime,
-      volume decayLevel,
-      seconds releaseTime)
+    constexpr envelope_generator(envelope env)
       : m_deltas({
           { 0.0F, 0.0F }, // wait / idle
-          { compute_slope(volume{ 0.0F }, attackLevel, attackTime), attackLevel.value }, // Attack
-          { compute_slope(attackLevel, decayLevel, decayTime), decayLevel.value }, // Decay
-          { 0.0F, decayLevel.value }, // Sustain
-          { compute_slope(decayLevel, volume{ 0.0F }, releaseTime), 0.0F }  // Release
+          { compute_slope(volume{ 0.0F }, env.attackLevel, env.attackTime), env.attackLevel.value }, // Attack
+          { compute_slope(env.attackLevel, env.decayLevel, env.decayTime), env.decayLevel.value }, // Decay
+          { 0.0F, env.decayLevel.value }, // Sustain
+          { compute_slope(env.decayLevel, volume{ 0.0F }, env.releaseTime), 0.0F }  // Release
     })
     {}
 
@@ -90,7 +71,7 @@ namespace tmp::sources {
       return m_state == State::Idle;
     }
 
-    // begin the note envelope in the given number of samples from the start of the next apply() block
+    // begin the note envelope_generator in the given number of samples from the start of the next apply() block
     constexpr void note_on(std::uint32_t startNumberSamplesFromNextBlock, std::uint32_t stopAfterNumberSamples)
     {
       m_sampleCounter = startNumberSamplesFromNextBlock;
@@ -99,9 +80,9 @@ namespace tmp::sources {
     }
 
     template<block_size BLOCK_SIZE>
-    constexpr void apply(std::span<float, BLOCK_SIZE.samples_per_block> buffer)
+    constexpr void apply(std::span<float, BLOCK_SIZE.samplesPerBlock> buffer)
     {
-      for (std::size_t i{ 0 }; i < BLOCK_SIZE.samples_per_block; ++i) {
+      for (std::size_t i{ 0 }; i < BLOCK_SIZE.samplesPerBlock; ++i) {
         // Wait -> Attack [note on]
         // Attack -> Release [note off]
         // Decay -> Release [note off]
@@ -225,7 +206,7 @@ namespace tmp::sources {
   {
   public:
     template<typename... ARGS>
-    constexpr explicit note_base(envelope<RATE> envelope,
+    constexpr explicit note_base(envelope_generator<RATE> envelope,
       std::uint32_t startNumberSamplesFromNextBlock,
       std::uint32_t stopAfterNumberSamples,
       ARGS &&...args)
@@ -236,7 +217,7 @@ namespace tmp::sources {
     }
 
     template<block_size BLOCK_SIZE>
-    constexpr void render(std::span<float, BLOCK_SIZE.samples_per_block> buffer)
+    constexpr void render(std::span<float, BLOCK_SIZE.samplesPerBlock> buffer)
     {
       m_source.template render<BLOCK_SIZE>(buffer);
       m_envelope.template apply<BLOCK_SIZE>(buffer);
@@ -248,14 +229,14 @@ namespace tmp::sources {
       return m_envelope.is_idle();
     }
 
-    // begin the note envelope in the given number of samples from the start of the next apply() block
+    // begin the note envelope_generator in the given number of samples from the start of the next apply() block
     constexpr void note_on(std::uint32_t inNumberSamples, std::uint32_t offAfterNumberSamples)
     {
       m_envelope.note_on(inNumberSamples, offAfterNumberSamples);
     }
 
   private:
-    envelope<RATE> m_envelope;
+    envelope_generator<RATE> m_envelope;
     SOURCE<RATE> m_source;
   };
 
