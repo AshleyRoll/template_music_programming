@@ -5,12 +5,9 @@ HDR_FILES := $(shell find "include" -name "*.hpp")
 OBJ_FILES := $(patsubst src/%.cpp, obj/%.o, $(SRC_FILES))
 WAV_FILES := $(patsubst src/%.cpp, bin/%.wav, $(SRC_FILES))
 
-LD_SCRIPT := gcc/wav_file_generator.ld
 CXX=g++
 CPPFLAGS_GENERAL=--std=c++23 -I ./include -fconstexpr-ops-limit=9999999999999
 CPPFLAGS=-O3 $(CPPFLAGS_GENERAL)
-LDFLAGS=-T $(LD_SCRIPT)
-LD=ld
 RM=rm -f
 TIME=/usr/bin/time
 
