@@ -104,23 +104,30 @@ namespace tmp {
     constexpr static int A0NoteNumber = 21;
     constexpr static int A4NoteNumber = A0NoteNumber + (12 * 4);
     constexpr static float A4NoteFrequency = 440.0f;
+    constexpr static int C0NoteNumber = 12;
 
     constexpr explicit note(std::string_view const name)
-      : note_frequency{ parse(name) }
+      : note_name{ name }
+      , note_number{ parse_note_number(note_name) }
+      , note_frequency{ calculate_frequency(note_number) }
+
     {}
 
+    std::string_view note_name;
+    int note_number;
     frequency note_frequency;
 
   private:
-    constexpr static auto parse(std::string_view note) -> frequency
+    constexpr static auto parse_note_number(std::string_view note) -> int
     {
       // Name in format of <N><Octave>
       // Where name is in list below, and Octave is 0-8.
       // We use the offset into notes as the note number and calculate
       // the frequency from formula here: https://en.wikipedia.org/wiki/Piano_key_frequencies
 
+      // octave numbers start at C
       constexpr static std::array<std::string_view, 12> Notes{
-        "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"
+        "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
       };
 
       std::string_view name;
@@ -140,15 +147,19 @@ namespace tmp {
       if (pos == Notes.end()) {
         throw std::invalid_argument{ "Invalid note name, (A-G#, no B# or E#)" };
       }
-      auto noteNumber = static_cast<int>(A0NoteNumber + std::distance(Notes.begin(), pos));
+      auto noteNumber = static_cast<int>(C0NoteNumber + std::distance(Notes.begin(), pos));
 
       // find the octave number
       if (octave[0] < '0' || octave[0] > '8') {
         throw std::invalid_argument{ "Invalid octave number (0..8)" };
       }
       auto octaveNumber = static_cast<int>(octave[0] - '0');
-      noteNumber = noteNumber + (12 * octaveNumber);
 
+      return noteNumber + (12 * octaveNumber);
+    }
+
+    constexpr static auto calculate_frequency(int noteNumber) -> frequency
+    {
       // compute the frequency
       return frequency{ std::pow(2.0F, (static_cast<float>(noteNumber - A4NoteNumber) / 12.0F)) * A4NoteFrequency };
     }

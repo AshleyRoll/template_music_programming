@@ -12,6 +12,7 @@ CPPFLAGS=-O3 $(CPPFLAGS_GENERAL)
 LDFLAGS=-T $(LD_SCRIPT)
 LD=ld
 RM=rm -f
+TIME=/usr/bin/time
 
 .PHONY: all clean
 .PRECIOUS: $(OBJ_FILES)
@@ -31,7 +32,7 @@ clean:
 obj/%.o: src/%.cpp $(HDR_FILES)
 	@echo "Compiling [ $< ]"
 	@mkdir -p obj
-	@$(CXX) $(CPPFLAGS) -c $< -o $@
+	@$(TIME)  --format " --> [ $< ] %E elapsed" $(CXX) $(CPPFLAGS) -c $< -o $@
 
 
 bin/%.wav: obj/%.o $(HDR_FILES)
