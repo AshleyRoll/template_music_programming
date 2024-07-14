@@ -55,3 +55,15 @@ Copy the format from `src/song.cpp`.
 * A space (` `) represents no note played in that 16th
 * A `#` represents a note played or continued in that 16th
 
+## Test
+
+There is a `tests/test.cpp` file that can be used to build a run-time
+debuggable version of code if you want to step through or check something.
+
+This can sometimes also render parts at compile time..
+
+```sh
+$ make test
+```
+
+Will build that file into an executable `bin/test`.
