@@ -39,7 +39,7 @@ constinit auto const WaveData = [] {
 
   sin_synth<Rate> synth{
     envelope{ 0.005_sec, 0.0_dBfs, 0.02_sec, -3.0_dBfs, 0.005_sec },
-    -3.0_dBfs
+    -1.0_dBfs
   };
   sequencer sequencer{ synth };
 
