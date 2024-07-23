@@ -22,7 +22,7 @@ constinit auto const WaveData = [] {
   sequencer sequencer{ synth };
 
   wav_renderer_mono<Rate, seconds{ 1.6F }> wav{};
-  synth.play_note("A4"_note, (0.1_sec).to_samples(wav.Rate), (1.5_sec).to_samples(wav.Rate));
+  synth.play_note("A4"_note, (0.1_sec).to_samples(Rate), (1.5_sec).to_samples(Rate));
 
   wav.render(sequencer);
   return wav.data;
