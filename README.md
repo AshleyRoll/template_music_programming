@@ -13,7 +13,7 @@ To build:
 ```sh
 $ mkdir build
 $ cd build
-$ cmake .
+$ cmake ..
 $ cmake --build . --target song
 $ play song.wav
 ```
